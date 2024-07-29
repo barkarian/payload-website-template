@@ -1,5 +1,6 @@
 // storage-adapter-import-placeholder
 import { postgresAdapter } from '@payloadcms/db-postgres'
+import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
 
 import { payloadCloudPlugin } from '@payloadcms/plugin-cloud'
 import { formBuilderPlugin } from '@payloadcms/plugin-form-builder'
@@ -17,7 +18,7 @@ import {
 import sharp from 'sharp' // editor-import
 import { UnderlineFeature } from '@payloadcms/richtext-lexical'
 import path from 'path'
-import { buildConfig } from 'payload'
+import { Config, buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
 
 import Categories from './payload/collections/Categories'
@@ -47,7 +48,8 @@ const generateURL: GenerateURL<Post | Page> = ({ doc }) => {
     : process.env.NEXT_PUBLIC_SERVER_URL
 }
 
-export default buildConfig({
+
+const config: Config = {
   admin: {
     components: {
       // The `BeforeLogin` component renders a message that you see while logging into your admin panel.
@@ -194,4 +196,15 @@ export default buildConfig({
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
-})
+}
+
+if (process.env.BLOB_READ_WRITE_TOKEN) {
+  config.plugins.push(vercelBlobStorage({
+    collections: {
+      [Media.slug]: true,
+    },
+    token: process.env.BLOB_READ_WRITE_TOKEN || '',
+  }),)
+}
+
+export default buildConfig(config)
