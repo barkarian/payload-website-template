@@ -1,6 +1,5 @@
 // storage-adapter-import-placeholder
 import { postgresAdapter } from '@payloadcms/db-postgres'
-import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
 
 import { payloadCloudPlugin } from '@payloadcms/plugin-cloud'
 import { formBuilderPlugin } from '@payloadcms/plugin-form-builder'
@@ -18,7 +17,7 @@ import {
 import sharp from 'sharp' // editor-import
 import { UnderlineFeature } from '@payloadcms/richtext-lexical'
 import path from 'path'
-import { Config, buildConfig } from 'payload'
+import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
 
 import Categories from './payload/collections/Categories'
@@ -26,8 +25,6 @@ import { Media } from './payload/collections/Media'
 import { Pages } from './payload/collections/Pages'
 import { Posts } from './payload/collections/Posts'
 import Users from './payload/collections/Users'
-import BeforeDashboard from './payload/components/BeforeDashboard'
-import BeforeLogin from './payload/components/BeforeLogin'
 import { seed } from './payload/endpoints/seed'
 import { Footer } from './payload/globals/Footer/Footer'
 import { Header } from './payload/globals/Header/Header'
@@ -48,16 +45,18 @@ const generateURL: GenerateURL<Post | Page> = ({ doc }) => {
     : process.env.NEXT_PUBLIC_SERVER_URL
 }
 
-
-const config: Config = {
+export default buildConfig({
   admin: {
     components: {
       // The `BeforeLogin` component renders a message that you see while logging into your admin panel.
       // Feel free to delete this at any time. Simply remove the line below and the import `BeforeLogin` statement on line 15.
-      beforeLogin: [BeforeLogin],
+      beforeLogin: ['/payload/components/BeforeLogin'],
       // The `BeforeDashboard` component renders the 'welcome' block that you see after logging into your admin panel.
       // Feel free to delete this at any time. Simply remove the line below and the import `BeforeDashboard` statement on line 15.
-      beforeDashboard: [BeforeDashboard],
+      beforeDashboard: ['/payload/components/BeforeDashboard'],
+    },
+    importMap: {
+      baseDir: path.resolve(dirname),
     },
     user: Users.slug,
     livePreview: {
@@ -196,15 +195,15 @@ const config: Config = {
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
-}
+})
 
-if (process.env.BLOB_READ_WRITE_TOKEN) {
-  config.plugins.push(vercelBlobStorage({
-    collections: {
-      [Media.slug]: true,
-    },
-    token: process.env.BLOB_READ_WRITE_TOKEN || '',
-  }),)
-}
+// if (process.env.BLOB_READ_WRITE_TOKEN) {
+//   config.plugins.push(vercelBlobStorage({
+//     collections: {
+//       [Media.slug]: true,
+//     },
+//     token: process.env.BLOB_READ_WRITE_TOKEN || '',
+//   }),)
+// }
 
-export default buildConfig(config)
+// export default buildConfig(config)
